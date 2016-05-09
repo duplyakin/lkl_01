@@ -16,6 +16,7 @@
 #include <poll.h>
 #include <lkl_host.h>
 #include "iomem.h"
+#include "logman.h"
 
 /* Let's see if the host has semaphore.h */
 #include <unistd.h>
@@ -393,8 +394,24 @@ static int blk_request(union lkl_disk disk, struct lkl_blk_req *req)
 	return LKL_DEV_BLK_STATUS_OK;
 }
 
+static int vlad_blk_request(union lkl_disk disk, struct lkl_blk_req *req)
+{
+	vlad_log_rec rec;
+	unsigned len=0;
+	int i;
+	rec.type = req->type;
+	rec.prio = req->prio;
+	rec.sector = req->sector;
+	for (i=0;i<req->count;i++)
+		len+=req->buf[i].len;
+	rec.count=(len+511)/512;	
+	vlad_log(&rec);
+	return blk_request(disk,req);
+}
+
+
 struct lkl_dev_blk_ops lkl_dev_blk_ops = {
 	.get_capacity = fd_get_capacity,
-	.request = blk_request,
+	.request = vlad_blk_request,
 };
 

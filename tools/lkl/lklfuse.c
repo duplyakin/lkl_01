@@ -13,6 +13,7 @@
 #include <fuse/fuse_lowlevel.h>
 #include <lkl.h>
 #include <lkl_host.h>
+#include "lib/logman.h"
 
 #define LKLFUSE_VERSION "0.1"
 
@@ -503,6 +504,8 @@ static int start_lkl(void)
 	long ret;
 	char mpoint[32];
 
+	vlad_init_log("/home/vlad/vlad.log",1024*1024);
+
 	ret = lkl_start_kernel(&lkl_host_ops, lklfuse.mb * 1024 * 1024, "");
 	if (ret) {
 		fprintf(stderr, "can't start kernel: %s\n", lkl_strerror(ret));
@@ -541,6 +544,7 @@ static void stop_lkl(void)
 {
 	int ret;
 
+	vlad_close_log();
 	ret = lkl_sys_chdir("/");
 	if (ret)
 		fprintf(stderr, "can't chdir to /: %s\n", lkl_strerror(ret));
